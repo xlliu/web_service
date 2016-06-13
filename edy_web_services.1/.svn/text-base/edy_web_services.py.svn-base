@@ -1,0 +1,134 @@
+# -*- coding: utf-8 -*-
+import logging
+import time
+
+import pymongo
+import pytz
+import re
+import xlsxwriter as xlsxwriter
+from bson import ObjectId
+from collections import OrderedDict
+from flask import Flask, jsonify, g, send_from_directory
+
+from common.mongodb_conn import mongodb_conn
+from common.mysql_conn import mysqldb_conn
+
+app = Flask(__name__)
+
+
+@app.before_request
+def before_request():
+    # g.mongo_collection = mongodb_conn("127.0.0.1", 27017, "xyt_survey").conn()
+    g.mongo_collection_edy = mongodb_conn("10.0.0.3", 27017, "xyt_survey", flag=1).conn()
+    # g.mongo_collection = mongodb_conn("120.131.71.215", 27017, "xyt_survey", flag=1).conn()
+    g.mongo_collection = mongodb_conn("120.131.64.225", 27017, "xyt_survey", flag=1).conn()
+    g.mysql_conn = mysqldb_conn("120.131.70.8", 3306, "esuser").conn()
+
+
+@app.teardown_request
+def teardown_request(exception):
+    if g.db is not None:
+        g.db.close()
+
+
+@app.route('/app/weixin/five_list/<int:num>_<string:sort>')
+def five_list(num=5, sort=""):
+    tzchina = pytz.timezone('Asia/Shanghai')
+    utc = pytz.timezone('UTC')
+    document_project = g.mongo_collection_edy.xyt_survey_project
+    cur = g.mysql_conn.cursor()
+    result = document_project.find({"is_sendpacket": 1, "is_show_wx": {'$ne': 1}}).sort("publicdate", pymongo.DESCENDING).limit(num)
+    text = {}
+    temp_text = []
+    for r in result:
+        temp_list = {}
+        temp_list["pid"] = r.get("short_id")
+        temp_list["title"] = r.get("title")
+        # temp_list["title"] = r.get("title")
+        temp_list["is_sendpacket"] = r.get("is_sendpacket")
+        temp_list["publicdate"] = r.get("publicdate").replace(tzinfo=utc).astimezone(tzchina).strftime(
+            "%Y-%m-%d %H:%M:%S") if r.get("publicdate", "") else ""
+        cur.execute('select mobile from ea_user where user_id=%s', r.get("creator_id"))
+        temp_list["phone"] = cur.fetchone()[0]
+        temp_text.append(temp_list)
+    text["result"] = temp_text
+    return jsonify(text)
+
+
+#@app.route('/app/format_title/<string:pid>')
+#def format_title(pid):
+#    logger = logging.getLogger("log_output_1")
+#    _pid = "pid_%s" % pid
+#    document_project = getattr(g.mongo_collection, _pid)
+#    keys_list = []
+#    dpo = document_project.find_one({}, {"_id": 0})
+#    keys_list += dpo.keys()
+#    dpf = document_project.find({}, {"_id": 0}, no_cursor_timeout=True)
+#    n = 0
+#    for dp_title in dpf:
+#        blist = set(dp_title).difference(set(keys_list))
+#        keys_list.extend(blist)
+#        logger.info(str(n))
+#        n += 1
+#    for bf in keys_list:
+#	document_project.update({bf: {'$exists': False}}, {'$set': {bf: ''}}, multi=True)
+#
+#    return jsonify({"info": "ok"})
+
+
+@app.route('/app/generator_excel/<int:version>_<string:pid>_<int:skip>_<int:limit>')
+def generator_excel(version, pid, skip, limit):
+    logger = logging.getLogger("log_output_1")
+    start = time.time()
+    p = re.compile('^\d{10}$')
+
+    def objectId_to_str(value):
+        if isinstance(value, ObjectId):
+            return str(value)
+        if p.match(str(value)) if isinstance(value, long) else p.match(value):
+            return time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(value))
+        return value
+
+    _pid = "pid_%s" % pid
+    document_project = getattr(g.mongo_collection, _pid)
+
+    filepath = '/data/pywww/web_services/temp_excel/'
+    # filepath = 'D:\\'
+    filename = '%s.xlsx' % pid
+    dpt_1 = document_project.find_one({"0d版本": version},{"_id": 0})
+
+    dp = document_project.find({"0d版本": version},{"_id": 0}, no_cursor_timeout=True).skip(skip).limit(limit)
+    workbook = xlsxwriter.Workbook(filepath + filename, {'constant_memory': True})
+    worksheet = workbook.add_worksheet()
+    dpt = OrderedDict(sorted(dpt_1.items(),key=lambda d: d[0]))
+    kl = dpt.keys()
+    # kl.sort()
+    worksheet.write_row(0, 0, kl)
+    n = 1
+    try:
+        for v in dp:
+            si = sorted(v.iteritems(), key=lambda b: b[0])
+            kv = OrderedDict(si)
+            # worksheet.write_row(n, 0, map(objectId_to_str, kv.values()))
+            worksheet.write_row(n, 0, kv.values())
+            n += 1
+        workbook.close()
+    except Exception, e:
+        print e
+    end = time.time()
+    print end - start
+
+    return send_from_directory(filepath, filename, as_attachment=True)
+
+
+@app.route('/app/show_excel_info/<int:version>_<string:pid>_<int:skip>_<int:limit>')
+def show_excel_info(version, pid, skip, limit):
+    _pid = "pid_%s" % pid
+    document_project = getattr(g.mongo_collection, _pid)
+    dpt_1 = document_project.find({"0d版本": version},{"_id": 0}).skip(skip).limit(limit)
+    data_list = list(dpt_1)
+    return jsonify({"data": data_list})
+
+# app.debug = True
+if __name__ == '__main__':
+    app.run(port=5001)

@@ -15,7 +15,6 @@ from common.mysql_conn import mysqldb_conn
 
 app = Flask(__name__)
 
-app.debug = True
 import logging
 # 使用一个名字为fib的logger
 logger = logging.getLogger('fib')
@@ -32,10 +31,7 @@ logger.info("logging run start========================================>")
 
 @app.before_request
 def before_request():
-    # g.mongo_collection = mongodb_conn("127.0.0.1", 27017, "xyt_survey").conn()
     g.mongo_collection_edy = mongodb_conn("10.10.0.5", 27017, "xyt_survey", flag=0).conn()
-    # g.mongo_collection = mongodb_conn("120.131.71.215", 27017, "xyt_survey", flag=1).conn()
-    g.mongo_collection = mongodb_conn("10.10.0.5", 27017, "xyt_survey_data", flag=0).conn()
     g.mysql_conn = mysqldb_conn("10.10.0.9", 3306, "esuser").conn()
 
 
@@ -43,6 +39,8 @@ def before_request():
 def teardown_request(exception):
     if g.db is not None:
         g.db.close()
+    if g.mysql_conn is not None:
+        g.mysql_conn.close()
 
 
 @app.route('/app/weixin/five_list/<int:num>_<string:sort>')
@@ -68,80 +66,6 @@ def five_list(num=5, sort=""):
     text["result"] = temp_text
     return jsonify(text)
 
-
-#@app.route('/app/format_title/<string:pid>')
-#def format_title(pid):
-#    logger = logging.getLogger("log_output_1")
-#    _pid = "pid_%s" % pid
-#    document_project = getattr(g.mongo_collection, _pid)
-#    keys_list = []
-#    dpo = document_project.find_one({}, {"_id": 0})
-#    keys_list += dpo.keys()
-#    dpf = document_project.find({}, {"_id": 0}, no_cursor_timeout=True)
-#    n = 0
-#    for dp_title in dpf:
-#        blist = set(dp_title).difference(set(keys_list))
-#        keys_list.extend(blist)
-#        logger.info(str(n))
-#        n += 1
-#    for bf in keys_list:
-#	document_project.update({bf: {'$exists': False}}, {'$set': {bf: ''}}, multi=True)
-#
-#    return jsonify({"info": "ok"})
-
-
-@app.route('/app/generator_excel/<int:version>_<string:pid>_<int:skip>_<int:limit>')
-def generator_excel(version, pid, skip, limit):
-    logger = logging.getLogger("log_output_1")
-    start = time.time()
-    p = re.compile('^\d{10}$')
-
-    def objectId_to_str(value):
-        if isinstance(value, ObjectId):
-            return str(value)
-        if p.match(str(value)) if isinstance(value, long) else p.match(value):
-            return time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(value))
-        return value
-
-    _pid = "pid_%s" % pid
-    document_project = getattr(g.mongo_collection, _pid)
-
-    filepath = '/data/pywww/web_services/temp_excel/'
-    # filepath = 'D:\\'
-    filename = '%s.xlsx' % pid
-    dpt_1 = document_project.find_one({"0d版本": version},{"_id": 0})
-
-    dp = document_project.find({"0d版本": version},{"_id": 0}, no_cursor_timeout=True).skip(skip).limit(limit)
-    workbook = xlsxwriter.Workbook(filepath + filename, {'constant_memory': True})
-    worksheet = workbook.add_worksheet()
-    dpt = OrderedDict(sorted(dpt_1.items(),key=lambda d: d[0]))
-    kl = dpt.keys()
-    # kl.sort()
-    worksheet.write_row(0, 0, kl)
-    n = 1
-    try:
-        for v in dp:
-            si = sorted(v.iteritems(), key=lambda b: b[0])
-            kv = OrderedDict(si)
-            # worksheet.write_row(n, 0, map(objectId_to_str, kv.values()))
-            worksheet.write_row(n, 0, kv.values())
-            n += 1
-        workbook.close()
-    except Exception, e:
-        print e
-    end = time.time()
-    print end - start
-
-    return send_from_directory(filepath, filename, as_attachment=True)
-
-
-@app.route('/app/show_excel_info/<int:version>_<string:pid>_<int:skip>_<int:limit>')
-def show_excel_info(version, pid, skip, limit):
-    _pid = "pid_%s" % pid
-    document_project = getattr(g.mongo_collection, _pid)
-    dpt_1 = document_project.find({"0d版本": version},{"_id": 0,"0d开始时间":0,"0d结束时间":0,"0d序号":0}).skip(skip).limit(limit)
-    data_list = list(dpt_1)
-    return jsonify({"data": data_list})
 
 if __name__ == '__main__':
     app.run(port=5001)

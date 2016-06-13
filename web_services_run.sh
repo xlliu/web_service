@@ -4,8 +4,9 @@ cd edy_web_services
 nohup python tornado_server.py &
 cd ..
 ps -ef | grep tornado_server | grep -v "grep" | awk '{print $2}' > edy_web_services.pid
-echo "===================================================================================================================================================="
 echo "============================================== edy_web_services.pid was written to Success ========================================================="
-echo "===================================================================================================================================================="
-cd edy_web_services
-tail -f nohup.out
+cd edy_web_services.1
+nohup python tornado_server_1.py &
+cd ..
+ps -ef | grep tornado_server_1 | grep -v "grep" | awk '{print $2}' > edy_web_services_1.pid
+echo "============================================== edy_web_services_1.pid was written to Success ========================================================="
