@@ -95,7 +95,7 @@ def show_excel_info(version, pid, skip, limit):
     # data_list = [f_dpt_1 for f_dpt_1 in dpt_1 if "k_list" not in f_dpt_1]
     # data_list_1 = []
     for dv in dpt_1:
-        logger.info(str("k_list" in dv))
+        logger.info(str(dv))
         if "k_list" in dv:
             data_list_1.append(zip(set(dpt_1["k_list"][4:]),set(dpt_1["v_list"][4:])))
     logger.info("===============================")
