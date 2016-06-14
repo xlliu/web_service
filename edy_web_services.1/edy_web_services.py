@@ -97,7 +97,7 @@ def show_excel_info(version, pid, skip, limit):
     data_list_1 = []
     for dv in dpt_1:
         if "k_list" in dv:
-            data_list_1.append(dict(zip(dv["k_list"][4:],dv["v_list"][4:])))
+            data_list_1.append(dict(zip(dv["k_list"],dv["v_list"])))
     #logger.info("===============================")
     return jsonify({"data": data_list_1})
 
