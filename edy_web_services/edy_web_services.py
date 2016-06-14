@@ -53,6 +53,7 @@ def five_list(num=5, sort=""):
     text = {}
     temp_text = []
     for r in result:
+        logger.info(r.get("status"))
         temp_list = {}
         temp_list["pid"] = r.get("short_id")
         temp_list["title"] = r.get("title")
