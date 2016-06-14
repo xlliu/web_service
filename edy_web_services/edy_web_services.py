@@ -49,7 +49,7 @@ def five_list(num=5, sort=""):
     utc = pytz.timezone('UTC')
     document_project = g.mongo_collection_edy.xyt_survey_project
     cur = g.mysql_conn.cursor()
-    result = document_project.find({"is_sendpacket": 1, "is_show_wx": {'$ne': 1}, "status": {'$ne': -1}}).sort("publicdate", pymongo.DESCENDING).limit(num)
+    result = document_project.find({"is_sendpacket": 1, "is_show_wx": {'$ne': 1}, "status": {'$ne': "-1"}}).sort("publicdate", pymongo.DESCENDING).limit(num)
     text = {}
     temp_text = []
     for r in result:
