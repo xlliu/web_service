@@ -93,6 +93,8 @@ def show_excel_info(version, pid, skip, limit):
     document_project = getattr(g.mongo_collection, _pid)
     dpt_1 = document_project.find({"0d版本": version},{"_id": 0,"0d开始时间":0,"0d结束时间":0,"0d序号":0, "0d用户":0}).skip(skip).limit(limit)
     data_list = list(dpt_1)
+    if "k_list" in dpt_1:
+        data_listzip(set(dpt_1["k_list"][4:]),set(dpt_1["v_list"][4:]))
     return jsonify({"data": data_list})
 
 if __name__ == '__main__':
