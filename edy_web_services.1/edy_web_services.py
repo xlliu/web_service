@@ -63,7 +63,7 @@ def generator_excel(version, pid, skip, limit):
     filename = '%s.xlsx' % pid
     dpt_1 = document_project.find_one({"0d版本": version},{"_id": 0})
 
-    dp = document_project.find({"0d版本": version},{"_id": 0}, no_cursor_timeout=True).skip(skip).limit(limit)
+    dp = document_project.find({"0d版本": version},{"_id": 0, "k_list": 0, "v_list": 0}, no_cursor_timeout=True).skip(skip).limit(limit)
     workbook = xlsxwriter.Workbook(filepath + filename, {'constant_memory': True})
     worksheet = workbook.add_worksheet()
     #dpt = OrderedDict(sorted(dpt_1.items(),key=lambda d: d[0]))
@@ -73,8 +73,6 @@ def generator_excel(version, pid, skip, limit):
     n = 1
     try:
         for v in dp:
-            del v["k_list"]
-            del v["v_list"]
             #si = sorted(v.iteritems(), key=lambda b: b[0])
             #kv = OrderedDict(si)
             # worksheet.write_row(n, 0, map(objectId_to_str, kv.values()))
@@ -93,7 +91,7 @@ def generator_excel(version, pid, skip, limit):
 def show_excel_info(version, pid, skip, limit):
     _pid = "pid_%s" % pid
     document_project = getattr(g.mongo_collection, _pid)
-    dpt_1 = document_project.find({"0d版本": version},{"_id": 0,"0d开始时间":0,"0d结束时间":0,"0d序号":0, "0d用户":0}).skip(skip).limit(limit)
+    dpt_1 = document_project.find({"0d版本": version},{"_id": 0,"0d开始时间":0,"0d结束时间":0,"0d序号":0, "0d用户":0, "k_list": 0, "v_list": 0}).skip(skip).limit(limit)
     # data_list = [f_dpt_1 for f_dpt_1 in dpt_1 if "k_list" not in f_dpt_1]
     data_list_1 = list(dpt_1)
     # data_list_1 = []
