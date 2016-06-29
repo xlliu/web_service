@@ -1,4 +1,8 @@
 # -*- coding: utf-8 -*-
+import sys
+reload(sys)
+sys.setdefaultencoding('utf8')
+
 import logging
 import time
 
@@ -123,11 +127,11 @@ def generator_excel_zkey(version, pid, skip, limit):
             #kv = OrderedDict(si)
             # worksheet.write_row(n, 0, map(objectId_to_str, kv.values()))
             vt = []
-            vt.append(v.get("开始时间"))
-            vt.append(v.get("结束时间"))
-            vt.append(v.get("用户"))
-            vt.append(v.get("序号"))
-            vt.append(v.get("版本"))
+            vt.append(v.get(unicode("开始时间")))
+            vt.append(v.get(unicode("结束时间")))
+            vt.append(v.get(unicode("用户")))
+            vt.append(v.get(unicode("序号")))
+            vt.append(v.get(unicode("版本")))
             vt.extend(v.get("v_list")[4:] if "用户" in v.get("k_list") else v.get("v_list"))
             worksheet.write_row(n, 0, vt)
             n += 1
