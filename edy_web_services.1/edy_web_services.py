@@ -67,7 +67,7 @@ def generator_excel(version, pid, skip, limit):
     workbook = xlsxwriter.Workbook(filepath + filename, {'constant_memory': True})
     worksheet = workbook.add_worksheet()
     #dpt = OrderedDict(sorted(dpt_1.items(),key=lambda d: d[0]))
-    kl = dpt_1.get("k_list")[4:]
+    kl = dpt_1.get("k_list")[4:] if "用户" in dpt_k.get("k_list") else dpt_k.get("k_list")
     # kl.sort()
     worksheet.write_row(0, 0, kl)
     n = 1
@@ -76,7 +76,7 @@ def generator_excel(version, pid, skip, limit):
             #si = sorted(v.iteritems(), key=lambda b: b[0])
             #kv = OrderedDict(si)
             # worksheet.write_row(n, 0, map(objectId_to_str, kv.values()))
-            worksheet.write_row(n, 0, v.get("v_list")[4:])
+            worksheet.write_row(n, 0, v.get("v_list")[4:] if "用户" in dpt_k.get("v_list") else dpt_k.get("v_list"))
             n += 1
         workbook.close()
     except Exception, e:
@@ -97,8 +97,8 @@ def show_excel_info(version, pid, skip, limit):
     # data_list = [f_dpt_1 for f_dpt_1 in dpt_1 if "k_list" not in f_dpt_1]
     dpt_value = []
     for dv in dpt_v:
-        dpt_value.append(dv.get("v_list")[4:])
-    data_list = [dpt_k.get("k_list")[4:]] + dpt_value
+        dpt_value.append(dv.get("v_list")[4:] if "用户" in dpt_k.get("v_list") else dpt_k.get("v_list"))
+    data_list = [dpt_k.get("k_list")[4:] if "用户" in dpt_k.get("k_list") else dpt_k.get("k_list")] + dpt_value
     # data_list_1 = []
     # for dv in dpt_1:
     #     if "k_list" in dv:
