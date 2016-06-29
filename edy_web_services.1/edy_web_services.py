@@ -85,6 +85,59 @@ def generator_excel(version, pid, skip, limit):
     print end - start
 
     return send_from_directory(filepath, filename, as_attachment=True)
+    
+    
+@app.route('/app/generator_excel_zkey/<int:version>_<string:pid>_<int:skip>_<int:limit>')
+def generator_excel_zkey(version, pid, skip, limit):
+    start = time.time()
+    p = re.compile('^\d{10}$')
+
+    def objectId_to_str(value):
+        if isinstance(value, ObjectId):
+            return str(value)
+        if p.match(str(value)) if isinstance(value, long) else p.match(value):
+            return time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(value))
+        return value
+
+    _pid = "pid_%s" % pid
+    document_project = getattr(g.mongo_collection, _pid)
+
+    filepath = '/data/pywww/web_services/temp_excel/'
+    # filepath = 'D:\\'
+    filename = '%s.xlsx' % pid
+    dpt_1 = document_project.find_one({"版本": version},{"_id": 0})
+
+    dp = document_project.find({"版本": version},{"_id": 0}, no_cursor_timeout=True).skip(skip).limit(limit)
+    workbook = xlsxwriter.Workbook(filepath + filename, {'constant_memory': True})
+    worksheet = workbook.add_worksheet()
+    #dpt = OrderedDict(sorted(dpt_1.items(),key=lambda d: d[0]))
+    k_top = ["开始时间", "结束时间", "用户", "序号", "版本"]
+    kl = dpt_1.get("k_list")[4:] if "用户" in dpt_1.get("k_list") else dpt_1.get("k_list")
+    
+    # kl.sort()
+    worksheet.write_row(0, 0, kl)
+    n = 1
+    try:
+        for v in dp:
+            #si = sorted(v.iteritems(), key=lambda b: b[0])
+            #kv = OrderedDict(si)
+            # worksheet.write_row(n, 0, map(objectId_to_str, kv.values()))
+            vt = []
+            vt.append(v.get("开始时间"))
+            vt.append(v.get("结束时间"))
+            vt.append(v.get("用户"))
+            vt.append(v.get("序号"))
+            vt.append(v.get("版本"))
+            vt.extend(v.get("v_list")[4:] if "用户" in v.get("k_list") else v.get("v_list"))
+            worksheet.write_row(n, 0, vt)
+            n += 1
+        workbook.close()
+    except Exception, e:
+        print e
+    end = time.time()
+    print end - start
+
+    return send_from_directory(filepath, filename, as_attachment=True)
 
 
 @app.route('/app/show_excel_info/<int:version>_<string:pid>_<int:skip>_<int:limit>')
@@ -97,8 +150,8 @@ def show_excel_info(version, pid, skip, limit):
     # data_list = [f_dpt_1 for f_dpt_1 in dpt_1 if "k_list" not in f_dpt_1]
     dpt_value = []
     for dv in dpt_v:
-        dpt_value.append(dv.get("v_list")[4:]) if "用户" in dv.get("k_list") else dpt_value.append(dv.get("v_list"))
-    data_list = [dpt_k.get("k_list")[4:] if "用户" in dpt_k.get("k_list") else dpt_k.get("k_list")] + dpt_value
+        dpt_value.append(dv.get("v_list")[4:]) if u"用户" in dv.get("k_list") else dpt_value.append(dv.get("v_list"))
+    data_list = [dpt_k.get("k_list")[4:] if u"用户" in dpt_k.get("k_list") else dpt_k.get("k_list")] + dpt_value
     # data_list_1 = []
     # for dv in dpt_1:
     #     if "k_list" in dv:
