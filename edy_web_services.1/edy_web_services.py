@@ -61,13 +61,13 @@ def generator_excel(version, pid, skip, limit):
     filepath = '/data/pywww/web_services/temp_excel/'
     # filepath = 'D:\\'
     filename = '%s.xlsx' % pid
-    dpt_1 = document_project.find_one({"版本": version},{"_id": 0, "short_title": 1})
+    dpt_1 = document_project.find_one({"版本": version},{"_id": 0, "k_list": 1})
 
     dp = document_project.find({"版本": version},{"_id": 0, "v_list": 1}, no_cursor_timeout=True).skip(skip).limit(limit)
     workbook = xlsxwriter.Workbook(filepath + filename, {'constant_memory': True})
     worksheet = workbook.add_worksheet()
     #dpt = OrderedDict(sorted(dpt_1.items(),key=lambda d: d[0]))
-    kl = dpt_1.get("short_title")[4:]
+    kl = dpt_1.get("k_list")[4:]
     # kl.sort()
     worksheet.write_row(0, 0, kl)
     n = 1
@@ -92,18 +92,18 @@ def show_excel_info(version, pid, skip, limit):
     _pid = "pid_%s" % pid
     document_project = getattr(g.mongo_collection, _pid)
     # dpt_1 = document_project.find({"0d版本": version},{"_id": 0,"0d开始时间":0,"0d结束时间":0,"0d序号":0, "0d用户":0, "k_list": 0, "v_list": 0}).skip(skip).limit(limit)
-    dpt_k = document_project.find_one({"版本": version},{"_id": 0, "short_title": 1})
+    dpt_k = document_project.find_one({"版本": version},{"_id": 0, "k_list": 1})
     dpt_v = document_project.find({"版本": version},{"_id": 0, "v_list": 1}).skip(skip).limit(limit)
     # data_list = [f_dpt_1 for f_dpt_1 in dpt_1 if "k_list" not in f_dpt_1]
     dpt_value = []
     for dv in dpt_v:
         dpt_value.append(dv.get("v_list")[4:])
-    data_list = [dpt_k.get("short_title")[4:]] + dpt_value
+    data_list = [dpt_k.get("k_list")[4:]] + dpt_value
     # data_list_1 = []
     # for dv in dpt_1:
     #     if "k_list" in dv:
     #         data_list_1.append(dict(zip(dv["k_list"],dv["v_list"])))
-    # logger.info("===============================")
+    # logger.info("===============================")uu
     return jsonify({"data": data_list})
 
 if __name__ == '__main__':
