@@ -32,7 +32,7 @@ logger.info("logging run start========================================>")
 @app.before_request
 def before_request():
     logger.info("IP: %s" %request.remote_addr)
-    g.mongo_collection = mongodb_conn("10.10.0.5", 27017, "xyt_survey_data", flag=0).conn()
+    g.mongo_collection = mongodb_conn("10.10.0.5", 27017, "xyt_survey_data_two", flag=0).conn()
     # g.mysql_conn = mysqldb_conn("10.10.0.9", 3306, "esuser").conn()
     
 
