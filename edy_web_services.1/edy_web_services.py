@@ -67,7 +67,7 @@ def generator_excel(version, pid, skip, limit):
     workbook = xlsxwriter.Workbook(filepath + filename, {'constant_memory': True})
     worksheet = workbook.add_worksheet()
     #dpt = OrderedDict(sorted(dpt_1.items(),key=lambda d: d[0]))
-    kl = dpt_1.get("k_list")[4:] if "用户" in dpt_k.get("k_list") else dpt_k.get("k_list")
+    kl = dpt_1.get("k_list")[4:] if "用户" in dpt_1.get("k_list") else dpt_1.get("k_list")
     # kl.sort()
     worksheet.write_row(0, 0, kl)
     n = 1
