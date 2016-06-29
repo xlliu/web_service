@@ -115,7 +115,7 @@ def generator_excel_zkey(version, pid, skip, limit):
     kl = dpt_1.get("k_list")[4:] if "用户" in dpt_1.get("k_list") else dpt_1.get("k_list")
     
     # kl.sort()
-    worksheet.write_row(0, 0, kl)
+    worksheet.write_row(0, 0, k_top + kl)
     n = 1
     try:
         for v in dp:
