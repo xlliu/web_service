@@ -56,7 +56,7 @@ def generator_spss(version, pid):
     # version = 1
     # savFileName = 'D:\edy_web_services.1\someFile_demo_one_xlliu.sav'
     filepath = '/data/pywww/web_services/temp_spss/'
-    filename = '%s.xlsx' % pid
+    filename = '%s.sav' % pid
     fpn = filepath + filename
     # records = [[b'Test1', 1, 1, ''], [b'Test2', 2, 1, '']]
     _pid = "pid_%s" % pid
