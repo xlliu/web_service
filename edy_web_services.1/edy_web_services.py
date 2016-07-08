@@ -92,8 +92,7 @@ def generator_spss(version, pid):
                 writer.writerow(val)
         except Exception as e:
             print e
-    return jsonify({"data": "ok"})
-    send_from_directory(filepath, filename, as_attachment=True)
+    return send_from_directory(filepath, filename, as_attachment=True)
 
 
 @app.route('/app/generator_excel/<int:version>_<string:pid>_<int:skip>_<int:limit>')
