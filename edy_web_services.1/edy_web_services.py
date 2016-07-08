@@ -16,6 +16,7 @@ from flask import Flask, jsonify, g, send_from_directory, request
 
 from common.mongodb_conn import mongodb_conn
 from common.mysql_conn import mysqldb_conn
+from savReaderWriter.savWriter import SavWriter
 
 app = Flask(__name__)
 
@@ -37,6 +38,7 @@ logger.info("logging run start========================================>")
 def before_request():
     logger.info("IP: %s" %request.remote_addr)
     g.mongo_collection = mongodb_conn("10.10.0.5", 27017, "xyt_survey_data_two", flag=0).conn()
+    g.mongo_collection_spss = mongodb_conn("10.10.0.5", 27017, "xyt_survey_data_two_spss_format", flag=0).conn()
     # g.mysql_conn = mysqldb_conn("10.10.0.9", 3306, "esuser").conn()
     
 
@@ -46,6 +48,50 @@ def teardown_request(exception):
         g.db.close()
     # if g.mysql_conn is not None:
         # g.mysql_conn.close()
+
+    
+@app.route('/app/generator_spss/<int:version>_<string:pid>')
+def generator_spss(version, pid):
+    # pid = "577f06ff0f29eb30108b45a7"
+    # version = 1
+    # savFileName = 'D:\edy_web_services.1\someFile_demo_one_xlliu.sav'
+    savFileName = '/data/pywww/web_services/temp_spss/'
+    # records = [[b'Test1', 1, 1, ''], [b'Test2', 2, 1, '']]
+    _pid = "pid_%s" % pid
+    document_project = getattr(g.mongo_collection_spss, _pid)
+    vartitle = document_project.find_one({"版本": version}, {"_id": 0, "k_list": 1, "options": 1, "k_pid": 1})
+    vt = vartitle.get("k_pid")
+    vo = [dict(zip([str(vot_) for vot_ in vot], [str(vot_) for vot_ in vot])) if isinstance(vot, list) else vot for vot in vartitle.get("options")]
+    vs = vartitle.get("k_list")
+    # records = document_project.find({"版本": version},{"_id": 0, "v_list": 1}, no_cursor_timeout=True)
+    records = document_project.find({"版本": version}, {"_id": 0, "v_list": 1}, no_cursor_timeout=True)
+    varNames = vt
+    # 对齐
+    varTypes = dict(zip(varNames, [10] * len(varNames)))
+    # va_temp = dict(zip(varNames, [{str(index+1): str(vvn) if isinstance(vvn, int) else vvn for index, vvn in enumerate(vn)} for vn in vo]))
+    # # 清洗
+    # [va_temp.pop(k) for k, v in va_temp.items() if not v.get("1")]
+    # # 倒排值
+    # va_av_temp = {k: {v1: k1 for k1, v1 in v.items()} for k, v in va_temp.items()}
+    varAttributes = {k: v for k, v in zip(vt, vo) if v}
+    # varAttributes = {"Q1": {str(0): "ssssssssss", str(1): "wwwwwwwwwwwww"}}
+    valueLabels = {k: v for k, v in zip(vt, vo) if v}
+    # {b'var1': b'title_varl', b'v2': b'title2', b'v3': b'title3', b'v4': b'title4'}
+    varLabels = dict(zip(varNames, vs))
+    ioUtf8 = True
+    # missingValues = {'v4': "自动补齐"}
+    # varNames = [k for k, v in zip(varNames, xrange(len(varNames)))]
+    with SavWriter(savFileName=savFileName, varNames=varNames, varTypes=varTypes,
+                   varLabels=varLabels, valueLabels=valueLabels, ioUtf8=ioUtf8) as writer:
+        try:
+            for record in records:
+                # for iii in xrange(100):
+                val = [v.replace("\n", "") if isinstance(v, basestring) else unicode(v) for v in record.get("v_list")]
+                writer.writerow(val)
+        except Exception as e:
+            print e
+    return jsonify({"data": "ok"})
+
 
 @app.route('/app/generator_excel/<int:version>_<string:pid>_<int:skip>_<int:limit>')
 def generator_excel(version, pid, skip, limit):
