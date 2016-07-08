@@ -55,7 +55,9 @@ def generator_spss(version, pid):
     # pid = "577f06ff0f29eb30108b45a7"
     # version = 1
     # savFileName = 'D:\edy_web_services.1\someFile_demo_one_xlliu.sav'
-    savFileName = '/data/pywww/web_services/temp_spss/'
+    filepath = '/data/pywww/web_services/temp_spss/'
+    filename = '%s.xlsx' % pid
+    fpn = filepath + filename
     # records = [[b'Test1', 1, 1, ''], [b'Test2', 2, 1, '']]
     _pid = "pid_%s" % pid
     document_project = getattr(g.mongo_collection_spss, _pid)
@@ -81,7 +83,7 @@ def generator_spss(version, pid):
     ioUtf8 = True
     # missingValues = {'v4': "自动补齐"}
     # varNames = [k for k, v in zip(varNames, xrange(len(varNames)))]
-    with SavWriter(savFileName=savFileName, varNames=varNames, varTypes=varTypes,
+    with SavWriter(savFileName=fpn, varNames=varNames, varTypes=varTypes,
                    varLabels=varLabels, valueLabels=valueLabels, ioUtf8=ioUtf8) as writer:
         try:
             for record in records:
@@ -91,6 +93,7 @@ def generator_spss(version, pid):
         except Exception as e:
             print e
     return jsonify({"data": "ok"})
+    send_from_directory(filepath, filename, as_attachment=True)
 
 
 @app.route('/app/generator_excel/<int:version>_<string:pid>_<int:skip>_<int:limit>')
