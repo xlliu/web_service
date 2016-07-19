@@ -10,7 +10,7 @@ import pymongo
 import pytz
 import re
 import xlsxwriter as xlsxwriter
-import pandas as pd
+# import pandas as pd
 from bson import ObjectId
 from collections import OrderedDict
 from flask import Flask, jsonify, g, send_from_directory, request
@@ -70,7 +70,7 @@ def generator_spss(version, pid):
         vr = v.get("v_list")
         vr_t.append(vr)
 
-    resu = pd.DataFrame(vr_t)
+    # resu = pd.DataFrame(vr_t)
     varNames = vt
     # varTypes = dict(zip(varNames, [50 if v.name == "object" else 0 for v in resu.dtypes.tolist()]))
     varTypes = dict(zip(varNames, [50 if v == "string" else 0 for v in vty]))
