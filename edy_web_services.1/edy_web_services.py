@@ -72,7 +72,6 @@ def generator_spss(version, pid):
 
     resu = pd.DataFrame(vr_t)
     varNames = vt
-    # 对齐
     varTypes = dict(zip(varNames, [50 if v.name == "object" else 0 for v in resu.dtypes.tolist()]))
     # varTypes = dict(zip(varNames, [50]*len(varNames)))
     # va_temp = dict(zip(varNames, [{str(index+1): str(vvn) if isinstance(vvn, int) else vvn for index, vvn in enumerate(vn)} for vn in vo]))
