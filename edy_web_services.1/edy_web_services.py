@@ -53,44 +53,24 @@ def teardown_request(exception):
     
 @app.route('/app/generator_spss/<int:version>_<string:pid>')
 def generator_spss(version, pid):
-    # pid = "577f06ff0f29eb30108b45a7"
-    # version = 1
-    # savFileName = 'D:\edy_web_services.1\someFile_demo_one_xlliu.sav'
     filepath = '/data/pywww/web_services/temp_spss/'
     filename = '%s.sav' % pid
     fpn = filepath + filename
-    # records = [[b'Test1', 1, 1, ''], [b'Test2', 2, 1, '']]
     _pid = "pid_%s" % pid
     document_project = getattr(g.mongo_collection_spss, _pid)
     vartitle = document_project.find_one({"版本": version}, {"_id": 0})
     vt = vartitle.get("k_pid")
     vty = vartitle.get("q_type")
-    # vo = [dict(zip([str(vot_) for vot_ in vot], [str(vot_) for vot_ in vot])) if isinstance(vot, list) else vot for vot in vartitle.get("options")]
     vo = [dict(zip([vot_ for vot_ in vot], [str(vot_) for vot_ in vot])) if isinstance(vot, list) else vot for vot in [dict(zip(v[0],v[1])) if v else None for v in vartitle.get("options")]]
     vs = vartitle.get("k_list")
 
-    # vt_t = [u"User", u"StartTime", u"EndTime"] + vt
-    # vs_t = [u"用户", u"开始时间", u"结束时间"] + vs
-
     records = document_project.find({"版本": version},{"_id": 0, "v_list": 1}, no_cursor_timeout=True)
-    # records = document_project.find({"版本": version}, {"_id": 0}, no_cursor_timeout=True)
     vr_t = []
     for v in records:
         vr = v.get("v_list")
-    #     user = v.get("用户".decode('utf-8'))
-    #     starttime = v.get("开始时间".decode('utf-8'))
-    #     endtime = v.get("结束时间".decode('utf-8'))
-    #     vr_t.append([user, starttime, endtime] + vr)
         vr_t.append(vr)
 
-
-    # vty = zip(vt,[np.int64, np.int64, np.int64, np.object, np.int64, np.object, np.int64, np.object, np.int64, np.object])
-
-    # resu = pd.DataFrame(vr_t)
     resu = pd.DataFrame(vr_t)
-    print resu
-
-    # raise "hhhhhhhhaaa"
     varNames = vt
     # 对齐
     varTypes = dict(zip(varNames, [50 if v.name == "object" else 0 for v in resu.dtypes.tolist()]))
@@ -101,24 +81,14 @@ def generator_spss(version, pid):
     # 倒排值
     # va_av_temp = {k: {v1: k1 for k1, v1 in v.items()} for k, v in va_temp.items()}
     varAttributes = {k: v for k, v in zip(vt, vo) if v}
-    # varAttributes = {"Q1": {str(0): "ssssssssss", str(1): "wwwwwwwwwwwww"}}
-
-
     valueLabels = {k: v for k, v in zip(vt, vo) if v}
-    # {b'var1': b'title_varl', b'v2': b'title2', b'v3': b'title3', b'v4': b'title4'}
     varLabels = dict(zip(varNames, vs))
     ioUtf8 = True
     # missingValues = {'v4': "自动补齐"}
     # varNames = [k for k, v in zip(varNames, xrange(len(varNames)))]
-    # writer = StataWriter('d://date_data_file.dta', resu)
-    # writer.write_file()
-
     with SavWriter(savFileName=fpn, varNames=varNames, varTypes=varTypes,
                    varLabels=varLabels, valueLabels=valueLabels, ioUtf8=ioUtf8) as writer:
         try:
-        # for record in records:
-            # for iii in xrange(100):
-            # val = [v.replace("\n", "") if isinstance(v, basestring) else v for v in record.get("v_list")]
             writer.writerows(vr_t)
         except Exception as e:
             print e
