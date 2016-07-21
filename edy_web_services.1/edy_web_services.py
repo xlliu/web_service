@@ -9,6 +9,7 @@ import time
 import pymongo
 import pytz
 import re
+import ConfigParser
 import xlsxwriter as xlsxwriter
 # import pandas as pd
 from bson import ObjectId
@@ -32,14 +33,22 @@ formatter = logging.Formatter('[%(asctime)s] %(name)s:%(levelname)s: %(message)s
 hdr.setFormatter(formatter)
 # 给logger添加上handler
 logger.addHandler(hdr)
+
+config = ConfigParser.ConfigParser() #初始化config实例（建立一个空的数据集实例）
+config.read("db.conf")  #通过load文件filename来初始化config实例
+db_1 = config.get("edy_web_services.1", "db_name_1") #获得指定section中的key的value
+db_2 = config.get("edy_web_services.1", "db_name_2")
+host = config.get("edy_web_services.1", "host")
+port = config.getint("edy_web_services.1", "port")
+
 logger.info("logging run start========================================>")
 
 
 @app.before_request
 def before_request():
     logger.info("IP: %s" %request.remote_addr)
-    g.mongo_collection = mongodb_conn("10.10.0.5", 27017, "xyt_survey_data_two", flag=0).conn()
-    g.mongo_collection_spss = mongodb_conn("10.10.0.5", 27017, "xyt_survey_data_two_spss_format", flag=0).conn()
+    g.mongo_collection = mongodb_conn(host, port, db_1, flag=0).conn()
+    g.mongo_collection_spss = mongodb_conn(host, port, db_2, flag=0).conn()
     # g.mysql_conn = mysqldb_conn("10.10.0.9", 3306, "esuser").conn()
     
 
@@ -49,6 +58,14 @@ def teardown_request(exception):
         g.db.close()
     # if g.mysql_conn is not None:
         # g.mysql_conn.close()
+
+
+@app.route('/app/exis_changelog/<string:pid>')
+def exis_changelog(pid):
+    _pid = "pid_%s" % pid
+    document_project = getattr(g.mongo_collection, _pid)
+    res = document_project.distinct(u"版本")
+    return jsonify({"data": res})
 
     
 @app.route('/app/generator_spss/<int:version>_<string:pid>')
