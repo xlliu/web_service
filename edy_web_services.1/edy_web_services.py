@@ -32,8 +32,8 @@ hdr.setFormatter(formatter)
 logger.addHandler(hdr)
 
 config = ConfigParser.ConfigParser()  # 初始化config实例（建立一个空的数据集实例）
-# config.read("/data/pywww/web_services/edy_web_services.1/db.conf")  # 通过load文件filename来初始化config实例
-config.read("C:\Users\Administrator\PycharmProjects\web_service\edy_web_services.1\db.conf")  # 通过load文件filename来初始化config实例
+config.read("/data/pywww/web_services/edy_web_services.1/db.conf")  # 通过load文件filename来初始化config实例
+# config.read("C:\Users\Administrator\PycharmProjects\web_service\edy_web_services.1\db.conf")  # 通过load文件filename来初始化config实例
 db_1 = config.get("edy_web_services.1", "db_name_1")  # 获得指定section中的key的value
 db_2 = config.get("edy_web_services.1", "db_name_2")
 host = config.get("edy_web_services.1", "host")
@@ -68,8 +68,8 @@ def exis_changelog(pid):
 
 @app.route('/app/generator_spss/<int:version>_<string:pid>')
 def generator_spss(version, pid):
-    # filepath = '/data/pywww/web_services/temp_spss/'
-    filepath = 'd:\\'
+    filepath = '/data/pywww/web_services/temp_spss/'
+    # filepath = 'd:\\'
     filename = '%s.sav' % pid
     fpn = filepath + filename
     _pid = "pid_%s" % pid
