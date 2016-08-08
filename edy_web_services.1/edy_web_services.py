@@ -88,7 +88,7 @@ def generator_spss(version, pid):
     records = document_project.find({"版本": version}, {"_id": 0}, no_cursor_timeout=True)
     vr_t = []
     for v in records:
-        user = uuid.uuid1(v.get("用户".decode('utf8')))
+        user = v.get("用户".decode('utf8'))[1:] if v.get("用户".decode('utf8')) else ""
         starttime = ConvertTime.timestamp_2_time(v.get("开始时间".decode('utf8')))
         endtime = ConvertTime.timestamp_2_time(v.get("结束时间".decode('utf8')))
         changelog = v.get("版本".decode('utf8'))
