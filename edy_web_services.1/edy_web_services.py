@@ -159,7 +159,7 @@ def generator_excel_zkey(version, pid, skip, limit):
             vt = []
             vt.append(v.get(unicode("开始时间")))
             vt.append(v.get(unicode("结束时间")))
-            vt.append(v.get(unicode("用户")))
+            vt.append(v.get(unicode("用户"))[1:])
             vt.append(v.get(unicode("序号")))
             vt.append(v.get(unicode("版本")))
             vt.extend(v.get("v_list")[4:] if "用户" in v.get("k_list") else v.get("v_list"))
