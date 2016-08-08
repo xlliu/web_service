@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
+import md5
 import sys
+import uuid
 
 reload(sys)
 sys.setdefaultencoding('utf8')
@@ -14,6 +16,7 @@ from bson import ObjectId
 from flask import Flask, jsonify, g, send_from_directory, request
 
 from common.mongodb_conn import mongodb_conn
+from common.utils import ConvertTime
 from savReaderWriter.savWriter import SavWriter
 
 app = Flask(__name__)
@@ -85,9 +88,9 @@ def generator_spss(version, pid):
     records = document_project.find({"版本": version}, {"_id": 0}, no_cursor_timeout=True)
     vr_t = []
     for v in records:
-        user = v.get("用户".decode('utf8'))
-        starttime = v.get("开始时间".decode('utf8'))
-        endtime = v.get("结束时间".decode('utf8'))
+        user = uuid.uuid4(v.get("用户".decode('utf8')))
+        starttime = ConvertTime.timestamp_2_time(v.get("开始时间".decode('utf8')))
+        endtime = ConvertTime.timestamp_2_time(v.get("结束时间".decode('utf8')))
         changelog = v.get("版本".decode('utf8'))
         vr = v.get("v_list")
         vr = [user, starttime, endtime, changelog] + vr
@@ -98,8 +101,8 @@ def generator_spss(version, pid):
     # varTypes = dict(zip(varNames, [50 if v.name == "object" else 0 for v in resu.dtypes.tolist()]))
     varTypes = dict(zip(varNames, [200 if v == "string" else 0 for v in vty]))
     varTypes["user"] = 200
-    varTypes["starttime"] = 0
-    varTypes["endtime"] = 0
+    varTypes["starttime"] = 200
+    varTypes["endtime"] = 200
     varTypes["changelog"] = 0
 
     varNames = ["user", "starttime", "endtime", "changelog"] + varNames
