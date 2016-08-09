@@ -16,7 +16,7 @@ from bson import ObjectId
 from flask import Flask, jsonify, g, send_from_directory, request
 
 from common.mongodb_conn import mongodb_conn
-from common.utils import ConvertTime
+from common.utils import ConvertTime, StringMD5
 from savReaderWriter.savWriter import SavWriter
 
 app = Flask(__name__)
@@ -35,8 +35,8 @@ hdr.setFormatter(formatter)
 logger.addHandler(hdr)
 
 config = ConfigParser.ConfigParser()  # 初始化config实例（建立一个空的数据集实例）
-config.read("/data/pywww/web_services/edy_web_services.1/db.conf")  # 通过load文件filename来初始化config实例
-# config.read("C:\Users\Administrator\PycharmProjects\web_service\edy_web_services.1\db.conf")  # 通过load文件filename来初始化config实例
+# config.read("/data/pywww/web_services/edy_web_services.1/db.conf")  # 通过load文件filename来初始化config实例
+config.read("C:\Users\Administrator\PycharmProjects\web_service\edy_web_services.1\db.conf")  # 通过load文件filename来初始化config实例
 db_1 = config.get("edy_web_services.1", "db_name_1")  # 获得指定section中的key的value
 db_2 = config.get("edy_web_services.1", "db_name_2")
 host = config.get("edy_web_services.1", "host")
@@ -71,8 +71,8 @@ def exis_changelog(pid):
 
 @app.route('/app/generator_spss/<int:version>_<string:pid>')
 def generator_spss(version, pid):
-    filepath = '/data/pywww/web_services/temp_spss/'
-    # filepath = 'd:\\'
+    # filepath = '/data/pywww/web_services/temp_spss/'
+    filepath = 'd:\\'
     filename = '%s.sav' % pid
     fpn = filepath + filename
     _pid = "pid_%s" % pid
@@ -88,7 +88,7 @@ def generator_spss(version, pid):
     records = document_project.find({"版本": version}, {"_id": 0}, no_cursor_timeout=True)
     vr_t = []
     for v in records:
-        user = v.get("用户".decode('utf8'))[1:] if v.get("用户".decode('utf8')) else ""
+        user = StringMD5.md5(v.get("用户".decode('utf8')))
         starttime = ConvertTime.timestamp_2_time(v.get("开始时间".decode('utf8')))
         endtime = ConvertTime.timestamp_2_time(v.get("结束时间".decode('utf8')))
         changelog = v.get("版本".decode('utf8'))
@@ -100,12 +100,17 @@ def generator_spss(version, pid):
     varNames = vt
     # varTypes = dict(zip(varNames, [50 if v.name == "object" else 0 for v in resu.dtypes.tolist()]))
     varTypes = dict(zip(varNames, [200 if v == "string" else 0 for v in vty]))
-    varTypes["user"] = 200
-    varTypes["starttime"] = 200
-    varTypes["endtime"] = 200
-    varTypes["changelog"] = 0
+    varTypes["ID"] = 200
+    varTypes["StartTime"] = 200
+    varTypes["EndTime"] = 200
+    varTypes["VerNo"] = 0
+    formats = dict(zip(varNames, ['A200' if v == 'string' else 'F5.0' for v in vty]))
+    formats["ID"] = 'A200'
+    formats["StartTime"] = 'A200'
+    formats["EndTime"] = 'A200'
+    formats["VerNo"] = 'F5.0'
 
-    varNames = ["user", "starttime", "endtime", "changelog"] + varNames
+    varNames = ["ID", "StartTime", "EndTime", "VerNo"] + varNames
     vs = [u"用户", u"开始时间", u"结束时间", u"版本"] + vs
     # varTypes = dict(zip(varNames, [50]*len(varNames)))
     # va_temp = dict(zip(varNames, [{str(index+1): str(vvn) if isinstance(vvn, int) else vvn for index, vvn in enumerate(vn)} for vn in vo]))
@@ -120,7 +125,7 @@ def generator_spss(version, pid):
     # missingValues = {'v4': "自动补齐"}
     # varNames = [k for k, v in zip(varNames, xrange(len(varNames)))]
     with SavWriter(savFileName=fpn, varNames=varNames, varTypes=varTypes,
-                   varLabels=varLabels, valueLabels=valueLabels, ioUtf8=ioUtf8) as writer:
+                   varLabels=varLabels, valueLabels=valueLabels, ioUtf8=ioUtf8, formats=formats) as writer:
         try:
             writer.writerows(vr_t)
         except Exception as e:
@@ -159,7 +164,7 @@ def generator_excel_zkey(version, pid, skip, limit):
             vt = []
             vt.append(v.get(unicode("开始时间")))
             vt.append(v.get(unicode("结束时间")))
-            vt.append(v.get(unicode("用户"))[1:])
+            vt.append(StringMD5.md5(v.get(unicode("用户"))))
             vt.append(v.get(unicode("序号")))
             vt.append(v.get(unicode("版本")))
             vt.extend(v.get("v_list")[4:] if "用户" in v.get("k_list") else v.get("v_list"))
@@ -203,7 +208,7 @@ def generator_excel(version, pid, skip, limit):
             vt = []
             vt.append(v.get(unicode("开始时间")))
             vt.append(v.get(unicode("结束时间")))
-            vt.append(v.get(unicode("用户")))
+            vt.append(StringMD5.md5(v.get(unicode("用户"))))
             vt.append(v.get(unicode("序号")))
             vt.append(v.get(unicode("版本")))
             vt.extend(v.get("v_list")[4:] if "用户" in v.get("k_list") else v.get("v_list"))

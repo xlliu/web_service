@@ -10,6 +10,7 @@
 @file: utils.py
 @time: 2016/8/8 19:05
 """
+import hashlib
 import time
 
 
@@ -36,3 +37,14 @@ class ConvertTime(object):
         time_array = time.localtime(timestamp)
         time_str = time.strftime(time_frame, time_array)
         return time_str
+
+
+class StringMD5(object):
+    def __init__(self):
+        pass
+
+    @staticmethod
+    def md5(str):
+        m = hashlib.md5()
+        m.update(str)
+        return m.hexdigest()
