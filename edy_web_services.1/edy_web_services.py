@@ -35,8 +35,8 @@ hdr.setFormatter(formatter)
 logger.addHandler(hdr)
 
 config = ConfigParser.ConfigParser()  # 初始化config实例（建立一个空的数据集实例）
-config.read("/data/pywww/web_services/edy_web_services.1/db.conf")  # 通过load文件filename来初始化config实例
-# config.read("C:\Users\Administrator\PycharmProjects\web_service\edy_web_services.1\db.conf")  # 通过load文件filename来初始化config实例
+# config.read("/data/pywww/web_services/edy_web_services.1/db.conf")  # 通过load文件filename来初始化config实例
+config.read("C:\Users\Administrator\PycharmProjects\web_service\edy_web_services.1\db.conf")  # 通过load文件filename来初始化config实例
 db_1 = config.get("edy_web_services.1", "db_name_1")  # 获得指定section中的key的value
 db_2 = config.get("edy_web_services.1", "db_name_2")
 host = config.get("edy_web_services.1", "host")
@@ -71,8 +71,8 @@ def exis_changelog(pid):
 
 @app.route('/app/generator_spss/<int:version>_<string:pid>')
 def generator_spss(version, pid):
-    filepath = '/data/pywww/web_services/temp_spss/'
-    # filepath = 'd:\\'
+    # filepath = '/data/pywww/web_services/temp_spss/'
+    filepath = 'd:\\'
     filename = '%s.sav' % pid
     fpn = filepath + filename
     _pid = "pid_%s" % pid
@@ -126,10 +126,10 @@ def generator_spss(version, pid):
     # varNames = [k for k, v in zip(varNames, xrange(len(varNames)))]
     with SavWriter(savFileName=fpn, varNames=varNames, varTypes=varTypes,
                    varLabels=varLabels, valueLabels=valueLabels, ioUtf8=ioUtf8, formats=formats) as writer:
-        try:
-            writer.writerows(vr_t)
-        except Exception as e:
-            print e
+        # try:
+        writer.writerows(vr_t)
+        # except Exception as e:
+        #     print e
     return send_from_directory(filepath, filename, as_attachment=True)
 
 
@@ -164,7 +164,7 @@ def generator_excel_zkey(version, pid, skip, limit):
             vt = []
             vt.append(v.get(unicode("开始时间")))
             vt.append(v.get(unicode("结束时间")))
-            vt.append(StringMD5.md5(v.get(unicode("用户"))))
+            vt.append(v.get(unicode("用户")))
             vt.append(v.get(unicode("序号")))
             vt.append(v.get(unicode("版本")))
             vt.extend(v.get("v_list")[4:] if "用户" in v.get("k_list") else v.get("v_list"))
